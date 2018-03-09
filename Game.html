@@ -1,0 +1,266 @@
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <style>
+        .Black {
+            background-color: black;
+            width: 20px;
+            height: 20px;
+        }
+
+        .White {
+            background-color: white;
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+
+    <script type="text/javascript">
+
+        var currentHeight = 0;
+
+        var middleIndex = 0;
+
+        var as2D = [
+            "0000000000".split(""),
+            "0000000000".split(""),
+            "0000000000".split(""),
+            "0000000000".split(""),
+            "0000000000".split(""),
+            "0000000000".split(""),
+            "0000000000".split(""),
+            "0000000000".split(""),
+            "0000000000".split(""),
+            "0000000000".split("")
+        ];
+
+
+        var inputArray2D = [
+
+            [
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ]
+            ],
+            [
+                [
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 1],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0]
+                ]
+            ],
+            [
+                [
+                    [0, 0, 0, 0],
+                    [0, 0, 1, 1],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 1],
+                    [0, 0, 0, 1],
+                    [0, 0, 0, 0]
+                ]
+            ]
+        ];
+
+        $(document).ready(function () {
+            resetMiddleIndex();
+            StartUpRenderDisplay(as2D);
+        });
+
+        function resetMiddleIndex() {
+            var totalColLength = as2D[0].length;
+
+            if (totalColLength % 2 == 0) middleIndex = (totalColLength / 2) - 1;
+            else middleIndex = ((totalColLength - 1) / 2);
+
+            middleIndex = middleIndex - 1;// set index value instead of col count
+        }
+
+
+        function StartUpRenderDisplay(as2D) {
+            var sOut = "<table border=2>";
+
+            for (var y = 0; y < as2D.length; y++) {        // for each row
+                sOut += "<tr>";
+                for (var x = 0; x < as2D[y].length; x++) { // for each clm
+                    var currentVal = as2D[y][x];
+                    if (currentVal == 0)
+                        sOut += "<td class='White'></td>";
+                    else
+                        sOut += "<td class='Black'></td>";
+                }
+                sOut += "</tr>";
+            }
+            sOut += "</table>";
+
+            $("#container").html(sOut);
+        }
+
+        function getRandomInputArray2D(inputArray2D) {
+            return inputArray2D[Math.floor(Math.random() * inputArray2D.length)];
+        }
+
+        function getNextInputArray2DItem(arrayItems, currentItem) {
+            if (currentItem != null) {
+                var index = arrayItems.indexOf(currentItem);
+
+                if (index < arrayItems.count - 1)
+                    index++;
+                else
+                    index = 0;
+
+                return arrayItems[index];
+            }
+            else
+                return arrayItems[0];
+        }
+
+        function RenderDisplay(as2D, middleIndex, udpatedInputArray2DItem) {
+            var sOut = "<table border=2>";
+
+            var isCurrentHeightMaxReached = false;
+
+            for (var row = 0; row < as2D.length; row++) {        // for each row
+                sOut += "<tr>";
+                for (var col = 0; col < as2D[row].length; col++) { // for each clm
+
+                    var currentColomnHtml = '';
+                    var currentVal = as2D[row][col];
+                    var isCurrentColAssigned = false;
+
+                    if (currentVal != 0) {
+                        currentColomnHtml = "<td class='Black'></td>";
+                    }
+
+                    if (col >= middleIndex && col <= (middleIndex + 4)) {
+                        var upperIndex = inputArray2D[0][0].length;
+                        if (row >= currentHeight && row <= (currentHeight + upperIndex)) {
+                            ///
+                            //if (currentVal == 0) {
+                            if (udpatedInputArray2DItem[row - currentHeight] != undefined &&
+                                udpatedInputArray2DItem[row - currentHeight][col - middleIndex] != undefined &&
+                                udpatedInputArray2DItem[row - currentHeight][col - middleIndex] != 0) {
+                                //if (row == 9 && col == 3)
+                                //    debugger;
+                                if (currentHeight == as2D.length - (inputArray2D[0][0].length - 1)) {
+                                    if (currentVal == 0) {
+                                        currentColomnHtml = "<td class='Black'></td>";
+                                        as2D[row][col] = 1;
+                                        isCurrentHeightMaxReached = true;
+                                    }
+                                    else {
+                                        break;
+                                        alert('fff')
+                                    }
+                                }
+                                else if (currentHeight < as2D.length - (inputArray2D[0][0].length - 1)) {//make 1 dynamic
+                                    if (currentVal == 0) {
+                                        sOut += "<td class='Black'></td>";
+                                    }
+                                    else {
+                                        break;
+                                        alert('fff')
+                                    }
+                                }
+                                else {
+                                    if (currentVal != 0) {
+                                        isCurrentHeightMaxReached = true;
+                                        break;
+                                    }
+                                    currentColomnHtml = "<td class='White'></td>";
+                                }
+
+                            }
+                            else {
+                                if (currentVal != 0) {
+                                    isCurrentHeightMaxReached = true;
+                                    break;
+                                }
+                                currentColomnHtml = "<td class='White'></td>";
+                            }
+                            //}
+                            //else {
+                            //    alert('fff');
+                            //    isCurrentHeightMaxReached = true;
+                            //    break;
+                            //}
+                            ///
+                        }
+                        else {
+                            if (currentVal != 0) {
+                                isCurrentHeightMaxReached = true;
+                                break;
+                            }
+                            currentColomnHtml = "<td class='White'></td>";
+                        }
+                    }//
+                    else if (currentVal != 0) {
+                        alert('fff');
+                        currentColomnHtml = "<td class='Black'></td>";
+                    }
+                    else {
+                        if (currentVal != 0) {
+                            isCurrentHeightMaxReached = true;
+                            break;
+                        }
+                        currentColomnHtml = "<td class='White'></td>";
+                    }
+                    sOut += currentColomnHtml;
+
+                }
+                sOut += "</tr>";
+            }
+            sOut += "</table>";
+
+            if (isCurrentHeightMaxReached)
+                myFunction();
+
+            $("#container").html(sOut);
+        }
+
+        var currentItem = null;
+        var currentOrder = 0;
+        var udpatedInputArray2DItem;
+
+        function myFunction() {
+            currentHeight = 0;
+            resetMiddleIndex();
+
+            var currentInputShapes = getRandomInputArray2D(inputArray2D);
+            udpatedInputArray2DItem = getNextInputArray2DItem(currentInputShapes, currentItem);
+            RenderDisplay(as2D, middleIndex, udpatedInputArray2DItem);
+        }
+
+        function nextFunction() {
+            currentHeight++;
+            RenderDisplay(as2D, middleIndex, udpatedInputArray2DItem);
+        }
+
+    </script>
+</head>
+<body>
+    test display
+
+    <div id="container"></div>
+
+    <button onclick="myFunction()">Try it</button>
+
+    <button onclick="nextFunction()">Next</button>
+
+
+</body>
+</html>
