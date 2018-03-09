@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.rawgit.com/dubrox/Multiple-Dates-Picker-for-jQuery-UI/master/jquery-ui.multidatespicker.js"></script>
+    <link href="https://code.jquery.com/ui/1.12.1/themes/pepper-grinder/jquery-ui.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.rawgit.com/dubrox/Multiple-Dates-Picker-for-jQuery-UI/master/jquery-ui.multidatespicker.css" rel="stylesheet" type="text/css">
+
+    <style>
+        .Row {  
+            width: 135px;
+        }
+
+        .Sunday input, .Monday input, .Tuesday input, .Wednesday input, .Thursday input, .Friday input, .Saturday input {
+            width: 75px;
+            text-align: center;
+        }
+
+        .Sunday, .Saturday {
+            background-color: #9999CC;
+        }
+
+        .Monday, .Tuesday, .Wednesday, .Thursday, .Friday {
+            background-color: #CC9999;
+        }
+    </style>
+
+    <script>
+        var weekday = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        var monthNames = ["January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"];
+
+        Date.prototype.monthDays = function () {
+            var d = new Date(this.getFullYear(), this.getMonth() + 1, 0);
+            return d.getDate();
+        }
+
+        function pad(d) {
+            return (d < 10) ? '0' + d.toString() : d.toString();
+        }
+
+        function date_diff_indays(d1, d2) {
+            return (new Date(d1) - new Date(d2)) / 86400000;
+        }
+
+        //// Create the XHR object.
+        //function createCORSRequest(method, url) {
+        //    var xhr = new XMLHttpRequest();
+        //    if ("withCredentials" in xhr) {
+        //        // XHR for Chrome/Firefox/Opera/Safari.
+        //        xhr.open(method, url, true);
+        //    } else if (typeof XDomainRequest != "undefined") {
+        //        // XDomainRequest for IE.
+        //        xhr = new XDomainRequest();
+        //        xhr.open(method, url);
+        //    } else {
+        //        // CORS not supported.
+        //        xhr = null;
+        //    }
+        //    return xhr;
+        //}
+
+
+        var year = 2017;
+        var month = 01;
+        var bph = 50;
+        var ec = 20;
+        var noOfHours = 8;
+        var payRollAmount = 3000;
+        var percentage = .8;
+
+        var cmpyInfoes = [];
+        var holidays = [];
+        var payInfoes = [];
+
+        function myFunction() {
+            debugger;
+
+            var strtDates = cmpyInfoes.map(function (x) { return new Date(x.cmpyStrtDt); })
+            var earliestDt = new Date(Math.min.apply(null, strtDates));
+
+            var endDates = cmpyInfoes.map(function (x) { return new Date(x.cmpyEndDt); })
+            //latestDt = new Date(Math.max.apply(null, endDates));
+
+            var strtMonth = earliestDt.getMonth();
+            var strtDayOfYear = Math.floor(date_diff_indays(earliestDt, new Date(earliestDt.getFullYear(), 0, 0)));
+            var strtDayOfMonth = Math.floor(date_diff_indays(earliestDt, new Date(earliestDt.getFullYear(), strtMonth, 0)));
+            var strtYear = earliestDt.getFullYear();
+
+            var endDayOfMonth = Math.floor(date_diff_indays(latestDt, new Date(latestDt.getFullYear(), latestDt.getMonth(), 0)));
+
+            var payDatesArr = $('#mdp-demo').multiDatesPicker('getDates');
+
+            $('#mdp-demo').multiDatesPicker('destroy');
+            $('#InitialDemo').hide();
+            $('#btnGenerateContent').hide();
+            $('#demo').show();
+
+            var x = '';
+
+            month = strtMonth + 1;
+
+            for (var year = strtYear; year <= latestDt.getFullYear() ; year++) {
+
+                while (!isNaN(new Date(year + "/" + month)) &&
+                    (month <= latestDt.getMonth() + 1 || year < latestDt.getFullYear())) {
+
+                    for (var day = strtDayOfMonth;
+                        day <= new Date(year + "/" + month).monthDays() &&
+                        (day <= latestDt.getDate() || year < latestDt.getFullYear() || month < latestDt.getMonth() + 1) ; day++) {
+                        if (day == strtDayOfMonth) {
+                            x += AddHeader();
+                        }
+
+                        x += MakeDayTemplate(year, month, day, payDatesArr);
+                    }
+                    strtDayOfMonth = 1;
+                    month++;
+                    x += "</br></br>";
+                }
+                month = 1;
+            }
+
+            document.getElementById("display").innerHTML = x;
+        }
+
+        function myFunction1() {
+
+            var payDatesArr = $('#mdp-demo').multiDatesPicker('getDates');
+
+            $('#mdp-demo').multiDatesPicker('destroy');
+            $('#InitialDemo').hide();
+            $('#btnGenerateContent').hide();
+            $('#demo').show();
+
+            var x = '';
+
+            while (!isNaN(new Date(year + "/" + month))) {
+
+                for (var day = 1; day <= new Date(year + "/" + month).monthDays() ; day++) {
+                    if (day == 1) {
+                        x += AddHeader();
+                    }
+                    x += MakeDayTemplate(year, month, day, payDatesArr);
+                }
+                month++;
+                x += "</br></br>";
+            }
+
+            document.getElementById("display").innerHTML = x;
+        }
+
+        function AddHeader() {
+            var resp = "";
+            resp += '<table border="2">';
+            resp += '<tr>';
+            resp += '	<th class="Row">';
+            resp += '';
+            resp += '	</th>';
+            resp += '	<th class="Row">';
+            resp += 'BPH';
+            resp += '	</th>';
+            resp += '	<th class="Row">';
+            resp += 'Hours';
+            resp += '	</th>';
+            resp += '	<th class="Row">';
+            resp += 'Percentage';
+            resp += '	</th>';
+            resp += '	<th class="Row">';
+            resp += 'Total';
+            resp += '	</th>';
+            resp += '	<th class="Row">';
+            resp += 'Paid';
+            resp += '	</th>';
+            resp += '	<th class="Row">';
+            resp += 'Balance';
+            resp += '	</th>';
+            resp += '</tr>';
+            resp += '</table>';
+            return resp;
+        }
+
+        function MakeDayTemplate(year, month, day, payDatesArr) {
+            debugger;
+            var currentDate = new Date(year + "/" + month + "/" + day);
+            var currentDay = currentDate.getDay();
+            var currentDayString = weekday[currentDay];
+
+            var currentPad = pad(currentDate.getMonth() + 1) + '/' + pad(currentDate.getDate()) + '/' + pad(currentDate.getFullYear());
+
+            var resp = "";
+            var uniqueId = year + '' + month + '' + day;
+            resp += '<table id="tbl_' + uniqueId + '" class="' + currentDayString + '" border="2">';
+            resp += '<tr>';
+            resp += '	<td class="Row">';
+            resp += '		<div id="myDiv_' + uniqueId + '">' + GetDisplayDate(year, month, day) + '</div>';
+            resp += '	</td>';
+
+            var billing = '';
+            var cmpyName = '';
+
+            for (var i = 0; i < cmpyInfoes.length; i++) {
+                var cmpyInfo = cmpyInfoes[i];
+
+                if (Date.parse(cmpyInfo.cmpyStrtDt) <= Date.parse(currentPad) &&
+                    Date.parse(cmpyInfo.cmpyEndDt) >= Date.parse(currentPad)) {
+                    cmpyName = cmpyInfo.cmpyName;
+                    billing = cmpyInfo.billing;
+                    percentage = cmpyInfo.percentage;
+                    break;
+                }
+            }
+
+            var amount = '';
+
+            for (var i = 0; i < payInfoes.length; i++) {
+                var payInfo = payInfoes[i];
+
+                if (Date.parse(payInfo.cmpyStrtDt) <= Date.parse(currentPad) &&
+                    Date.parse(payInfo.cmpyEndDt) >= Date.parse(currentPad)) {
+                    amount = payInfo.amount;
+                    break;
+                }
+            }
+
+            var totalVal = '';
+
+            if (currentDay == 0 || currentDay == 6 || holidays.indexOf(currentPad) > -1) {
+                bph = '';
+                noOfHours = '';
+                percentage = '';
+                totalVal = '';
+            }
+            else {
+                bph = billing;
+                noOfHours = '8';//TODO
+                //percentage = billing;//*100?
+                totalVal = ((percentage / 100) * (bph * noOfHours));
+            }
+
+            resp += '	<td class="Row">';
+            resp += '		<input type="text" id="bph_' + uniqueId + '" value="' + bph + '"/>';
+            resp += '	</td>';
+            resp += '	<td class="Row">';
+            resp += '		<input type="text" id="noOfHours_' + uniqueId + '" value="' + noOfHours + '">';
+            resp += '	</td>';
+            resp += '	<td class="Row">';
+            resp += '		<input type="text" id="percentage_' + uniqueId + '" value="' + percentage + '"/>';
+            resp += '	</td>';
+            resp += '	<td class="Row">';
+            resp += '		<input type="text" class="Add" id="total_' + uniqueId + '" value="' + totalVal + '">';
+            resp += '	</td>';
+
+            var currentPayRollAmount = '';
+
+            if (payDatesArr.indexOf(currentPad) > -1) {
+                currentPayRollAmount = amount;
+            }
+
+            resp += '	<td class="Row">';
+            resp += '		<input type="text" class="Subtract" id="paid_' + uniqueId + '" value="' + currentPayRollAmount + '" >';
+            resp += '	</td>';
+
+            resp += '	<td class="Row">';
+            resp += '		<input type="text" id="balance_' + uniqueId + '">';
+            resp += '	</td>';
+            resp += '</tr>';
+            resp += '</table>';
+            return resp;
+        }
+
+        function GetDisplayDate(year, month, day) {
+            var resp = '';
+            var currentDate = new Date(year + "/" + month + "/" + day);
+
+            var y = monthNames[currentDate.getMonth()];
+
+            resp = y.concat(' ', day, ' ,', year);
+            return resp;
+        }
+
+
+        function Start() {
+            $('#main').show();
+            $('#btnStart').hide();
+
+            var iCnt = 0;
+            // CREATE A "DIV" ELEMENT AND DESIGN IT USING jQuery ".css()" CLASS.
+            var container = $(document.createElement('div')).attr('id', 'divContainer').css({
+                padding: '5px', margin: '20px', width: '886px', border: '1px dashed',
+                borderTopColor: '#999', borderBottomColor: '#999',
+                borderLeftColor: '#999', borderRightColor: '#999'
+            });
+
+            $('#btAdd').click(function () {
+                //alert('f');
+                if (iCnt <= 19) {
+
+                    iCnt = iCnt + 1;
+
+                    var currentStrtId = 'txtCmpyStrtDt' + iCnt;
+                    var currentEndId = 'txtCmpyEndDt' + iCnt;
+
+                    if (iCnt == 1) {
+                        $(container).append('<table><tr>' +
+                        '<td><input disabled type=text value="Company Name" class="input"/></td>' +
+                        '<td><input disabled value="Start Date" type=text class="input"/></td>' +
+                        '<td><input disabled value="End Date" type=text class="input"/></td>' +
+                        '<td><input disabled value="Percentage(%)" type=text class="input"/></td>' +
+                        '<td><input disabled value="Billing Rate(Pay per hour)" type=text class="input"/></td>' +
+                        '</tr></table>');
+                    }
+
+
+                    // ADD TEXTBOX.
+                    $(container).append('<table><tr>' +
+                        '<td><input type=text class="input" id=txtCmpyName' + iCnt + ' ' +
+                        'value="' + iCnt + '" /></td>' +
+                        '<td><input type=text class="input" id=' + currentStrtId + ' ' +
+                        'value="" /></td>' +
+                        '<td><input type=text class="input" id=' + currentEndId + ' ' +
+                       'value="" /></td>' +
+                       '<td><input type=text class="input" id=txtPercentage' + iCnt + ' ' +
+                        'value="" /></td>' +
+                         '<td><input type=text class="input" id=txtBilling' + iCnt + ' ' +
+                        'value="" /></td>' +
+                        '</tr></table>'
+                       );
+
+                    // SHOW SUBMIT BUTTON IF ATLEAST "1" ELEMENT HAS BEEN CREATED.
+                    if (iCnt == 1) {
+                        var divSubmit = $(document.createElement('div')).attr('id', 'divContainer2');
+                        $(divSubmit).append('<input type=button class="bt"' +
+                            'onclick="Start1()"' +
+                                'id=btnNext value=Next />');
+                    }
+
+                    // ADD BOTH THE DIV ELEMENTS TO THE "main" CONTAINER.
+                    $('#main').after(container, divSubmit);
+
+                    $("#" + currentStrtId).datepicker({
+                        onSelect: function (dateText) {
+                            //debugger;
+                            $(this).closest('td').next('td').find('input').datepicker({
+                                minDate: dateText
+                            });
+                            //display("Selected date: " + dateText + "; input's current value: " + this.value);
+                        }
+                    });
+                    //$("#" + currentEndId).datepicker();
+
+                }
+                    // AFTER REACHING THE SPECIFIED LIMIT, DISABLE THE "ADD" BUTTON.
+                    // (20 IS THE LIMIT WE HAVE SET)
+                else {
+                    $(container).append('<label>Reached the limit</label>');
+                    $('#btAdd').attr('class', 'bt-disable');
+                    $('#btAdd').attr('disabled', 'disabled');
+                }
+            });
+        }
+
+        var earliestDt = '';
+        var latestDt = '';
+
+        function Start1() {
+            debugger;
+
+            var rows = $('#divContainer').find('tr');
+
+            rows.each(function (index) {
+                //console.log(index + ": " + $(this).text());
+                let userInfo = {
+                    cmpyName: $(this).find("input[id^='txtCmpyName']").val(),
+                    cmpyStrtDt: $(this).find("input[id^='txtCmpyStrtDt']").val(),
+                    cmpyEndDt: $(this).find("input[id^='txtCmpyEndDt']").val(),
+                    percentage: $(this).find("input[id^='txtPercentage']").val(),
+                    billing: $(this).find("input[id^='txtBilling']").val()
+                }
+                if (index != 0)
+                    cmpyInfoes.push(userInfo);
+            });
+
+            var strtDates = cmpyInfoes.map(function (x) { return new Date(x.cmpyStrtDt); })
+            earliestDt = new Date(Math.min.apply(null, strtDates));
+
+            var endDates = cmpyInfoes.map(function (x) { return new Date(x.cmpyEndDt); })
+            latestDt = new Date(Math.max.apply(null, endDates));
+
+            $('#btnNext').attr('onclick', 'Start3()');
+
+            $('#main').hide();
+            $('#divContainer').hide();
+            $('#divContainer2').hide();
+
+            $('#btnStart').hide();
+            $('#InitialDemo').show();
+
+            $('#displayDatesLabel').hide();
+
+            $('#mdp-demo').multiDatesPicker(
+            {
+                minDate: date_diff_indays(earliestDt, new Date()),
+                maxDate: date_diff_indays(latestDt, new Date()),
+                beforeShowDay: $.datepicker.noWeekends,
+                onSelect: function (dateText) {
+                    debugger;
+
+                    $('#displayDatesLabel').show();
+
+                    var dates = $('#mdp-demo').multiDatesPicker('getDates');
+
+                    var str = '';
+
+                    for (var d = 0; d < dates.length; d++) {
+                        var getFullYear = new Date(dates[d]).getFullYear();
+                        var getMonth = new Date(dates[d]).getMonth() + 1;
+                        var getDate = new Date(dates[d]).getDate();
+
+                        str += '<div>' + GetDisplayDate(getFullYear, getMonth, getDate) + '</div>';
+                    }
+
+
+                    //var getFullYear = new Date(dateText).getFullYear();
+                    //var getMonth = new Date(dateText).getMonth();
+                    //var getDate = new Date(dateText).getDate();
+
+                    $('#displayDates').html(str);
+
+                    //$(this).append('<div>' + GetDisplayDate(getFullYear, getMonth, getDate) + '</div>');
+                }
+                //Pre-select dates for weekends??
+                //or disable dates for weekends?
+            }
+            );
+
+            $('#btnGenerateContent').show();
+        }
+
+        function Start2() {
+            //debugger;
+
+            $('#divDisplayDetails').text('Enter Pay Roll details:');
+
+            holidays = $('#mdp-demo').multiDatesPicker('getDates');
+
+            $("#btAdd").unbind("click");
+
+            $('#mdp-demo').multiDatesPicker('resetDates');
+            $('#mdp-demo').multiDatesPicker('destroy');
+
+            $('#InitialDemo').hide();
+            $('#btnGenerateContent').hide();
+
+            $('#main').show();
+            $('#btnStart').hide();
+
+            $("#divContainer").remove();
+            $("#divContainer2").remove();
+
+            var iCnt = 0;
+            // CREATE A "DIV" ELEMENT AND DESIGN IT USING jQuery ".css()" CLASS.
+            var container = $(document.createElement('div')).attr('id', 'divContainer').css({
+                padding: '5px', margin: '20px', width: '886px', border: '1px dashed',
+                borderTopColor: '#999', borderBottomColor: '#999',
+                borderLeftColor: '#999', borderRightColor: '#999'
+            });
+
+            $('#btAdd').click(function () {
+                //alert('ff');
+                if (iCnt <= 19) {
+
+                    iCnt = iCnt + 1;
+
+                    var currentStrtId = 'txtCmpyStrtDt' + iCnt;
+                    var currentEndId = 'txtCmpyEndDt' + iCnt;
+
+                    if (iCnt == 1) {
+                        $(container).append('<table><tr>' +
+                        '<td><input disabled type=text value="PayRoll Type" class="input"/></td>' +
+                        '<td><input disabled value="Start Date" type=text class="input"/></td>' +
+                        '<td><input disabled value="End Date" type=text class="input"/></td>' +
+                        '<td><input disabled value="Pay Roll Amount" type=text class="input"/></td>' +
+                        '</tr></table>');
+                    }
+
+                    // ADD TEXTBOX.
+                    $(container).append('<table><tr>' +
+                        '<td><input type=text class="input" id=txtCmpyName' + iCnt + ' ' +
+                        'value="' + iCnt + '" /></td>' +
+                        '<td><input type=text class="input" id=' + currentStrtId + ' ' +
+                        'value="" /></td>' +
+                        '<td><input type=text class="input" id=' + currentEndId + ' ' +
+                       'value="" /></td>' +
+                       '<td><input type=text class="input" id=txtAmount' + iCnt + ' ' +
+                        'value="" /></td>' +
+                        '</tr></table>'
+                       );
+
+                    // SHOW SUBMIT BUTTON IF ATLEAST "1" ELEMENT HAS BEEN CREATED.
+                    if (iCnt == 1) {
+                        var divSubmit = $(document.createElement('div')).attr('id', 'divContainer2');
+                        $(divSubmit).append('<input type=button class="bt"' +
+                            'onclick="Start3()"' +
+                                'id=btnNext value=Next />');
+                    }
+
+                    // ADD BOTH THE DIV ELEMENTS TO THE "main" CONTAINER.
+                    $('#main').after(container, divSubmit);
+
+                    $("#" + currentStrtId).datepicker({
+                        onSelect: function (dateText) {
+                            //alert('datepicker');
+                            //display("Selected date: " + dateText + "; input's current value: " + this.value);
+                        }
+                    });
+
+                    $("#" + currentEndId).datepicker();
+
+                }
+                    // AFTER REACHING THE SPECIFIED LIMIT, DISABLE THE "ADD" BUTTON.
+                    // (20 IS THE LIMIT WE HAVE SET)
+                else {
+                    $(container).append('<label>Reached the limit</label>');
+                    $('#btAdd').attr('class', 'bt-disable');
+                    $('#btAdd').attr('disabled', 'disabled');
+                }
+            });
+        }
+
+        function Start3() {
+            //debugger;
+            var rows = $('#divContainer').find('tr');
+
+            rows.each(function (index) {
+                //console.log(index + ": " + $(this).text());
+                let payInfo = {
+                    cmpyName: $(this).find("input[id^='txtCmpyName']").val(),
+                    cmpyStrtDt: $(this).find("input[id^='txtCmpyStrtDt']").val(),
+                    cmpyEndDt: $(this).find("input[id^='txtCmpyEndDt']").val(),
+                    amount: $(this).find("input[id^='txtAmount']").val()
+                }
+                if (index != 0)
+                    payInfoes.push(payInfo);
+            });
+
+            $('#main').hide();
+            $('#divContainer').hide();
+            $('#divContainer2').hide();
+            $('#btnStart').hide();
+
+            $('#displayDatesLabel').hide();
+
+            ////////////////////
+            $('#InitialDemo').show();
+            $('#mdp-demo').multiDatesPicker(
+            {
+                minDate: date_diff_indays(earliestDt, new Date()),
+                maxDate: date_diff_indays(latestDt, new Date()),
+                onSelect: function (dateText) {
+                    debugger;
+                    $('#displayDatesLabel').show();
+                    var dates = $('#mdp-demo').multiDatesPicker('getDates');
+                    var str = '';
+
+                    for (var d = 0; d < dates.length; d++) {
+                        var getFullYear = new Date(dates[d]).getFullYear();
+                        var getMonth = new Date(dates[d]).getMonth() + 1;
+                        var getDate = new Date(dates[d]).getDate();
+                        str += '<div>' + GetDisplayDate(getFullYear, getMonth, getDate) + '</div>';
+                    }
+                    $('#displayDates').html(str);
+                }
+            }
+            );
+
+            $('#btnNext1').attr('onclick', 'start4()');
+            $('#divLabel').text('Select Pay dates from Calender:');
+        }
+
+        function start4() {
+            //debugger;
+            //alert('fffffff');
+            //$('#mdp-demo').multiDatesPicker('destroy');
+            $('#InitialDemo').hide();
+            $('#btnGenerateContent').hide();
+            $('#demo').show();
+
+            myFunction();
+        }
+
+        function CalculateBalance() {
+            var tables = $("table[id^='tbl_']");
+
+            var previousSum = 0;
+
+            for (var i = 0; i < tables.length; i++) {
+                //debugger;
+                var sumFields = $(tables[i]).find(".Add");
+
+                var sum = 0;
+                sumFields.each(function () {
+                    sum += Number($(this).val());
+                });
+
+                var deductFields = $(tables[i]).find(".Subtract");
+
+                var minus = 0;
+                deductFields.each(function () {
+                    minus += Number($(this).val());
+                });
+
+                $(tables[i]).find("input[id^='balance']").val(previousSum + sum - minus);
+
+                previousSum = previousSum + sum - minus;
+            }
+        }
+
+        function SaveTemplate() {
+            var blob = new Blob([$('#display').html()], { type: "text/plain;charset=utf-8" });
+            saveAs(blob, "Pay Details Template.txt");
+        }
+
+        function LoadData() {
+            var path = $('#fileUpload').val();
+
+   
+
+            //path = 'C:\Users\Vineeth\Downloads\Pay Details Template.txt';
+
+            //$("#display").load('Pay Details Template.txt', function (data) {
+            //    debugger;
+            //    alert(data);
+            //    alert("Load was performed.");
+            //        $('#demo').show();
+            //        $('#btnStart').hide();
+            //});
+            path = 'Pay Details Template.txt';
+
+            //var blob = new Blob([path], { type: "text/plain;charset=utf-8" });
+
+            //var file = blob;
+            //fr = new FileReader();
+            //fr.onload = function (d,c) {
+            //    debugger;
+            //};
+            ////fr.readAsText(file);
+            //fr.readAsDataURL(file);
+
+
+
+
+
+            $.get('Pay Details Template.txt', function (data) {
+                alert(path + data);
+
+                debugger;
+                //var items = data.split(',');
+                $('#demo').show();
+                $('#btnStart').hide();
+                $("#display").html(data);
+            });
+        }
+
+        // Make the actual CORS request.
+        //function makeCorsRequest(path) {
+        //    debugger;
+        //    // This is a sample server that supports CORS.
+        //    var url = 'http://html5rocks-cors.s3-website-us-east-1.amazonaws.com/index.html';
+        //    url = path;
+
+        //    var xhr = createCORSRequest('GET', url);
+        //    if (!xhr) {
+        //        alert('CORS not supported');
+        //        return;
+        //    }
+
+        //    // Response handlers.
+        //    xhr.onload = function () {
+        //        var text = xhr.responseText;
+        //        var title = getTitle(text);
+        //        alert('Response from CORS request to ' + url + ': ' + title);
+        //    };
+
+        //    xhr.onerror = function () {
+        //        alert('Woops, there was an error making the request.');
+        //    };
+
+        //    xhr.send();
+        //}
+
+        $(document).ready(function () {
+
+            $('#btnGenerateContent').hide();
+            $('#demo').hide();
+            $('#InitialDemo').hide();
+            $('#main').hide();
+        });
+
+    </script>
+
+    <title>Page Title</title>
+</head>
+<body>
+
+    <div id="btnStart">
+        <table>
+            <tr>
+                <td>
+                    <h3> Option 1:</h3>
+                </td>
+                <td>
+
+                    <button id="" onclick="Start()">Start</button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Option 2: Select any existing template</h3>
+                </td>
+                <td>
+                    <div>
+                        <input type="file" id="fileUpload" />
+                        <button id="" onclick="LoadData()">Load previous data</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="main">
+        <table>
+            <tr>
+                <td><h1><div id="divDisplayDetails">Enter below Company Details:</div></h1></td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="button" id="btAdd" value="Add Element" class="bt" />
+                    <input type="button" id="btRemove" value="Remove Element" class="bt" />
+                    <input type="button" id="btRemoveAll" value="Remove All" class="bt" /><br />
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="InitialDemo">
+        <h1><div id="divLabel">Select holidays from Calender:</div></h1>
+        <div id="mdp-demo"></div>
+        <div id="displayDatesLabel">
+            <h3>Selected Dates are:</h3>
+            <div id="displayDates"> </div>
+        </div>
+        <button id="btnNext1" onclick="Start2()">Next</button>
+        <!--<button id="btnGenerateContent" onclick="myFunction()">Generate Content</button>-->
+    </div>
+
+    <div id="demo">
+        <button id="btnResults" onclick="CalculateBalance()">Calculate Balance</button>
+        <button id="btnSaveTemplate" onclick="SaveTemplate()">Save Template</button>
+        <p id="display"></p>
+    </div>
+
+</body>
+</html>
